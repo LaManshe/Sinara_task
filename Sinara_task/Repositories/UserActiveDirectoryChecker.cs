@@ -7,8 +7,9 @@ namespace Sinara_task.Repositories
         public bool Check(string ActiveDirectory)
         {
             // is Check and proof token or something
-
-            return false;
+            Random random = new Random();
+            int randomNum = random.Next(0, 100);
+            return randomNum > 50 ? false : true ;
         }
     }
 }

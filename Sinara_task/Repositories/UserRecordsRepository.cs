@@ -60,6 +60,16 @@ namespace Sinara_task.Repositories
             }
         }
 
+        public bool IsUserExist(string ActiveDirectory)
+        {
+            if(GetUserIdByAD(ActiveDirectory) > 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private int GetUserIdByAD(string activeDirectory)
         {
             if(activeDirectory == null) { return -1; }
@@ -77,5 +87,7 @@ namespace Sinara_task.Repositories
         {
             return _context.Posts.Count() == 0 ? 1 : _context.Posts.Max(x => x.Id) + 1;
         }
+
+        
     }
 }

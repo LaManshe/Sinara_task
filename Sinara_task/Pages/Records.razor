@@ -10,8 +10,17 @@
     {
         <div class="row mb-4">
             <div class="col text-black center">
-                <h5 class="bg-danger">@ErrorMessage</h5>
+                <div class="row bg-danger">
+                    <div class="col-8 text-end d-flex flex-column justify-content-center">
+                         <h5>@ErrorMessage</h5>
+                    </div>
+                    <div class="col text-end">
+                        <button class="btn" @onclick="ClearErrorMessage">Закрыть</button>
+                    </div>
+                </div>
+               
             </div>
+            
         </div>
     }
     
@@ -37,9 +46,9 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th scope="col">Title</th>
-                            <th scope="col">Number</th>
-                            <th scope="col">Actions</th>
+                            <th scope="col">Имя</th>
+                            <th scope="col">Номер</th>
+                            <th scope="col">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -50,11 +59,11 @@
                             <td>@post.Number</td>
                             <td>
                                 <div class="row">
-                                    <div class="col text-end">
-                                        <button class="btn btn-danger" @onclick="(() => DeletePost(post))">Delete</button>
+                                    <div class="col text-lg-end mb-1">
+                                        <button class="btn btn-danger" @onclick="(() => DeletePost(post))">Удалить</button>
                                     </div>
-                                    <div class="col text-start">
-                                        <button class="btn btn-secondary" @onclick="(() => ShowEditOptions(post))">Edit</button>
+                                    <div class="col text-lg-start mb-1">
+                                        <button class="btn btn-secondary" @onclick="(() => ShowEditOptions(post))">Изменить</button>
                                     </div>
                                 </div>
                             </td>
@@ -71,7 +80,7 @@
             <div class="col">
                 <div class="row mb-2">
                     <div class="col">
-                        <h4>Изменить запись: @_editPost.Title : @_editPost.Number</h4>
+                        <h4>Изменить запись: @_editPost.Title - @_editPost.Number</h4>
                     </div>
                 </div>
                 <div class="row mb-2">
@@ -133,6 +142,12 @@
 
     private void GetPosts()
     {
+        if(!UserRecordsRepository.IsUserExist(login))
+        {
+            ErrorMessage = "Такого пользователя не существует";
+            return;
+        }
+
         Posts.Clear();
         foreach(var post in UserRecordsRepository.Get(login))
         {
@@ -146,8 +161,19 @@
 
     private void AddPost()
     {
+        if (!UserRecordsRepository.IsUserExist(login))
+        {
+            ErrorMessage = "Такого пользователя не существует";
+            return;
+        }
+
         if(ChekerProofUser.Check(login))
         {
+            if(post.Title == String.Empty || post.Title == String.Empty)
+            {
+                ErrorMessage = "Нужно заполнить оба поля";
+                return;
+            }
             UserRecordsRepository.Add(post, login);
             Posts.Add(post);
 
@@ -157,14 +183,26 @@
         {
             ErrorMessage = "У вас нет доступа для добавления записей";
         }
-        
+
     }
 
 
     private void DeletePost(Post post)
     {
+        if (!UserRecordsRepository.IsUserExist(login))
+        {
+            ErrorMessage = "Такого пользователя не существует";
+            return;
+        }
+
         if (ChekerProofUser.Check(login))
         {
+            if(post == null)
+            {
+                ErrorMessage = "Неизвестная ошибка";
+                return;
+            }
+
             UserRecordsRepository.Delete(post.Id);
             Posts.Remove(post);
         }
@@ -172,7 +210,7 @@
         {
             ErrorMessage = "У вас нет доступа для удаления";
         }
-        
+
     }
 
 
@@ -196,8 +234,20 @@
 
     private void EditPost()
     {
+        if (!UserRecordsRepository.IsUserExist(login))
+        {
+            ErrorMessage = "Такого пользователя не существует";
+            return;
+        }
+
         if (ChekerProofUser.Check(login))
         {
+            if(_title == String.Empty || _number == String.Empty)
+            {
+                ErrorMessage = "Нужно заполнить оба поля";
+                return;
+            }
+
             _editPost.Title = _title;
             _editPost.Number = _number;
             UserRecordsRepository.Edit(_editPost);
@@ -208,6 +258,11 @@
             ErrorMessage = "У вас нет доступа для изменения";
             SkipEdit();
         }
-        
+
+    }
+
+    private void ClearErrorMessage()
+    {
+        ErrorMessage = String.Empty;
     }
 }
