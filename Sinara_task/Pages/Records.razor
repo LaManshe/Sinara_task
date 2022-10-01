@@ -1,0 +1,213 @@
+﻿@page "/records"
+@using Sinara_task.Models
+@using Sinara_task.Repositories.Interfaces
+
+@inject ICRUDDbRepository<Post> UserRecordsRepository;
+@inject ICheckActiveDirectory ChekerProofUser;
+
+<div class="container-fluid text-center">
+    @if(ErrorMessage != String.Empty)
+    {
+        <div class="row mb-4">
+            <div class="col text-black center">
+                <h5 class="bg-danger">@ErrorMessage</h5>
+            </div>
+        </div>
+    }
+    
+    <div class="row mb-4">
+        <div class="col">
+            <h4>Введите свой аутентификационный логин</h4>
+            <div class="row">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Enter login" @bind="login">
+                </div>
+                <div class="col">
+                    <button type="button" class="btn btn-primary" @onclick="GetPosts">Загрузить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    @if(showTable)
+    {
+        <div class="row mb-4">
+            <div class="col">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Number</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var post in Posts)
+                    {
+                        <tr>
+                            <td>@post.Title</td>
+                            <td>@post.Number</td>
+                            <td>
+                                <div class="row">
+                                    <div class="col text-end">
+                                        <button class="btn btn-danger" @onclick="(() => DeletePost(post))">Delete</button>
+                                    </div>
+                                    <div class="col text-start">
+                                        <button class="btn btn-secondary" @onclick="(() => ShowEditOptions(post))">Edit</button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    @if(isEditPost)
+    {
+        <div class="row mb-4 w-50 mx-auto p-4 rounded border text-white bg-dark">
+            <div class="col">
+                <div class="row mb-2">
+                    <div class="col">
+                        <h4>Изменить запись: @_editPost.Title : @_editPost.Number</h4>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col">
+                        <input type="text" class="form-control" placeholder="@_editPost.Title" @bind="_title" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col">
+                        <input type="text" class="form-control" placeholder="@_editPost.Number" @bind="_number" />
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col text-end">
+                        <button type="button" class="btn btn-success" @onclick="EditPost">Изменить</button>
+                    </div>
+                    <div class="col text-start">
+                        <button type="button" class="btn btn-danger" @onclick="SkipEdit">Отменить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    
+    <hr>
+    <div class="row w-50 mx-auto rounded border p-4 mb-4">
+        <div class="col">
+            <div class="row mb-2">
+                <div class="col">
+                    <h4>Добавить запись</h4>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Title" @bind="post.Title" />
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col">
+                    <input type="text" class="form-control" placeholder="Number" @bind="post.Number" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <button type="button" class="btn btn-success" @onclick="AddPost">Добавить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+</div>
+
+@code {
+    private bool showTable = false;
+    private List<Post> Posts = new List<Post>();
+    private string login = String.Empty;
+    private string ErrorMessage = String.Empty;
+
+    private void GetPosts()
+    {
+        Posts.Clear();
+        foreach(var post in UserRecordsRepository.Get(login))
+        {
+            Posts.Add(post);
+        }
+        showTable = true;
+    }
+
+
+    private Post post = new Post();
+
+    private void AddPost()
+    {
+        if(ChekerProofUser.Check(login))
+        {
+            UserRecordsRepository.Add(post, login);
+            Posts.Add(post);
+
+            post = new Post();
+        }
+        else
+        {
+            ErrorMessage = "У вас нет доступа для добавления записей";
+        }
+        
+    }
+
+
+    private void DeletePost(Post post)
+    {
+        if (ChekerProofUser.Check(login))
+        {
+            UserRecordsRepository.Delete(post.Id);
+            Posts.Remove(post);
+        }
+        else
+        {
+            ErrorMessage = "У вас нет доступа для удаления";
+        }
+        
+    }
+
+
+    private bool isEditPost = false;
+    private Post _editPost = new Post();
+    private string _title, _number = String.Empty;
+
+    private void ShowEditOptions(Post post)
+    {
+        _editPost = post;
+        isEditPost = true;
+    }
+
+    private void SkipEdit()
+    {
+        isEditPost = false;
+        _editPost = new Post();
+        _title = String.Empty;
+        _number = String.Empty;
+    }
+
+    private void EditPost()
+    {
+        if (ChekerProofUser.Check(login))
+        {
+            _editPost.Title = _title;
+            _editPost.Number = _number;
+            UserRecordsRepository.Edit(_editPost);
+            SkipEdit();
+        }
+        else
+        {
+            ErrorMessage = "У вас нет доступа для изменения";
+            SkipEdit();
+        }
+        
+    }
+}
