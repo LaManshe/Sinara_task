@@ -12,7 +12,7 @@
             <div class="col text-black center">
                 <div class="row bg-danger">
                     <div class="col-8 text-end d-flex flex-column justify-content-center">
-                         <h5>@ErrorMessage</h5>
+                         <h5 class="m-0">@ErrorMessage</h5>
                     </div>
                     <div class="col text-end">
                         <button class="btn" @onclick="ClearErrorMessage">Закрыть</button>
@@ -169,7 +169,7 @@
 
         if(ChekerProofUser.Check(login))
         {
-            if(post.Title == String.Empty || post.Title == String.Empty)
+            if (post.Title == String.Empty || post.Number == String.Empty || post.Title == null || post.Number == null)
             {
                 ErrorMessage = "Нужно заполнить оба поля";
                 return;

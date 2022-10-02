@@ -13,6 +13,7 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddDbContext<GuideBook_DbContext>(
         op => op.UseNpgsql(builder.Configuration.GetConnectionString("Pgl_db"))
     );
+
 builder.Services.AddTransient<ICRUDDbRepository<Post>, UserRecordsRepository>();
 builder.Services.AddTransient<ICheckActiveDirectory, UserActiveDirectoryChecker>();
 
